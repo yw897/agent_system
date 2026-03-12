@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🤖 Agent 系统 - 移动版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            /* ✨ 移动端优化：防止双击缩放 */
+            touch-action: manipulation;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        
+        .chat-box {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            max-height: 60vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            /* ✨ 平滑滚动 */
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+        
+        .user {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .assistant {
+            background: #f1f3f4;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        /* 打字动画光标 */
+        .typing::after {
+            content: '|';
+            animation: blink 1s step-start infinite;
+            color: #667eea;
+            margin-left: 2px;
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        
+        .input-area {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            /* ✨ 固定在底部 */
+            position: sticky;
+            bottom: 10px;
+        }
+        
+        #userInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+            /* ✨ 移动端输入优化 */
+            -webkit-appearance: none;
+        }
+        
+        #userInput:focus {
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            /* ✨ 移动端按钮优化 */
+            min-width: 60px;
+            white-space: nowrap;
+        }
+        
+        #sendBtn {
+            background: #007bff;
+            color: white;
+        }
+        
+        #sendBtn:active {
+            background: #0056b3;
+            transform: scale(0.95);
+        }
+        
+        #clearBtn {
+            background: #6c757d;
+            color: white;
+        }
+        
+        #clearBtn:active {
+            background: #545b62;
+            transform: scale(0.95);
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 10px;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        /* ✨ 媒体查询：小屏幕优化 */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .header p {
+                font-size: 0.8em;
+            }
+            
+            .message {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            .input-area {
+                padding: 10px;
+            }
+            
+            #userInput {
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            button {
+                padding: 10px 15px;
+                font-size: 14px;
+                min-width: 50px;
+            }
+        }
+        
+        /* ✨ 横屏优化 */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .chat-box {
+                max-height: 50vh;
+            }
+            
+            .header {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Agent 系统</h1>
+            <p>智能助手 | 手机友好 | 支持工具调用</p>
+        </div>
+        
+        <div class="chat-box" id="chatBox">
+            <div class="message assistant">
+                你好！我是你的智能助手，有什么可以帮你的吗？
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="userInput" 
+                placeholder="输入消息..." 
+                onkeypress="if(event.key==='Enter') sendMessage()"
+                autofocus
+            >
+            <button id="sendBtn" onclick="sendMessage()">发送</button>
+            <button id="clearBtn" onclick="clearChat()">清空</button>
+        </div>
+    </div>
+    
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        let isTyping = false;
+        
+        function appendMessage(role, content) {
+            const div = document.createElement('div');
+            div.className = 'message ' + role;
+            div.textContent = content;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        
+        // 打字动画函数
+        function typeMessage(content, callback) {
+            const div = document.createElement('div');
+            div.className = 'message assistant typing';
+            chatBox.appendChild(div);
+            
+            let i = 0;
+            const speed = 30;
+            
+            function type() {
+                if (i < content.length) {
+                    div.textContent += content.charAt(i);
+                    i++;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    setTimeout(type, speed);
+                } else {
+                    div.classList.remove('typing');
+                    if (callback) callback();
+                }
+            }
+            
+            type();
+        }
+        
+        function showLoading() {
+            const div = document.createElement('div');
+            div.className = 'loading';
+            div.id = 'loading';
+            div.textContent = 'AI 思考中';
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.remove();
+            }
+        }
+        
+        async function sendMessage() {
+            if (isTyping) return;
+            
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            appendMessage('user', message);
+            userInput.value = '';
+            showLoading();
+            
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: message})
+                });
+                
+                const data = await response.json();
+                hideLoading();
+                
+                isTyping = true;
+                typeMessage(data.response, () => {
+                    isTyping = false;
+                });
+                
+            } catch (error) {
+                hideLoading();
+                appendMessage('assistant', '❌ 请求失败：' + error.message);
+            }
+        }
+        
+        async function clearChat() {
+            try {
+                await fetch('/clear', {method: 'POST'});
+                chatBox.innerHTML = '<div class="message assistant">对话历史已清空，有什么可以帮你的吗？</div>';
+            } catch (error) {
+                alert('清空失败：' + error.message);
+            }
+        }
+        
+        // ✨ 移动端优化：自动聚焦输入框
+        window.addEventListener('load', () => {
+            userInput.focus();
+        });
+    </script>
+</body>
+</html>

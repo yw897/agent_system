@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+
+# 环境变量（包含敏感信息）
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+
+# 记忆文件（可选，包含用户数据）
+memory.json
+user_preferences.json
+cache.json
+tool_usage_log.json
+ab_test_results.json
+
+# 提醒文件
+reminders.txt
+
+# 测试文件
+test_memory.json
+test_tools_temp.txt
+test_tools_dir/
+
+# 构建产物
+build/
+dist/
+*.egg-info/
